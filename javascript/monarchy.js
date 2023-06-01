@@ -60,11 +60,14 @@ class Person {
         this.maturity = this.computeMaturity();
         this.health = this.generateHealth();
         this.death = this.generateDeath();
+        this.lifespan = this.computeLifespan();
         
-        [this.fertility, this.fertilityStart] = this.generateFertility();
+        this.marriage = this.generateMarriage();
+        this.spouse = undefined;
         this.children = [];
         this.nbChild = 0;
         this.generation = 0;
+        this.generateChildren();
 
         this.number = "1";
         this.monarch = [];
@@ -77,28 +80,83 @@ class Person {
     }
 
     generateDynasty() {
-
+        return undefined;
     }
 
     generateReligion() {
-
+        return undefined;
     }
 
     generateDeath() {
+        var days = 0;
+        var simulateHealth = this.health;
+
+        var alive = true;
+        while(alive) {
+            days++;
+
+            if(days%365==0 && days>365*25) {
+                var threshold = 7.24 + 2.08 * Math.floor(days/365);
+                if(Math.random()*100<threshold) {
+                    var change = (Math.random()*300-100)/100;
+                    simulateHealth-=change;
+                }
+            }
+
+            if(simulateHealth<3 && days%30==0 && days>365*15) {
+                var threshold = 25 - simulateHealth*3;
+
+                if(Math.random()*100<threshold) {
+                    alive = false;
+                }
+            }
+        }
+
+        var years = Math.floor(days/365);
+        var months = Math.floor(((days/365)-years)*12);
+        var days = (Math.floor(((Math.floor(((days/365)-years)*12))-months)*30));
 
 
-        return new Date(this.birth.getFullYear() + age, Math.floor(Math.random()*12), Math.floor(Math.random()*31));
+        return new Date(this.birth.getFullYear() + years, this.birth.getMonth() + months, this.birth.getDate() + days);
     }
 
     generateHealth() {
-        return 0;
+        return Math.floor(Math.random()*1200)/100;
     }
 
-    generateFertility() {
-        return [undefined, undefined];
+    generateMarriage() {
+        var minYear = this.maturity.getFullYear();
+        var maxYear = this.death.getFullYear()-1;
+
+        if(Math.random()<0.5) {
+            var year = Math.floor(Math.random()*(maxYear-minYear))+minYear;
+            return new Date(year, Math.floor(Math.random()*12), Math.floor(Math.random()*31));
+        } else {
+            return NaN;
+        }
+
     }
 
     generateChildren() {
+        var laid = 0;
+        var children = 0;
+        for(var i=maturity[0]; i< this.lifespan; i+=0.25) {
+            var fertility = 120-Math.floor(i/10)*10;
+            var controlDate = new Date(this.birth.getFullYear()+Math.floor(i), this.birth.getMonth()+i-Math.floor(i), this.birth.getDate());
+            console.log(controlDate);
+            if(Math.random()<0.33 && controlDate>=this.marriage && !isNaN(this.marriage)) {
+                console.log("They fucked");
+                laid++;
+
+                if(Math.random() * (120 + children * 10) < fertility) {
+                    console.log("CHILD");
+                    children++;
+                }
+            }
+        }
+
+        console.log(laid);
+        console.log(children);
 
         function generateChild() {
 
