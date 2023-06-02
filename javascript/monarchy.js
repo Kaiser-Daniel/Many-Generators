@@ -73,6 +73,8 @@ class Person {
         this.monarch = [];
         this.abdication = false;
 
+
+        console.log(this.death);
     }
 
     generateName(sex) {
@@ -96,32 +98,35 @@ class Person {
             days++;
 
             if(days%365==0 && days>365*25) {
-                var threshold = 7.24 + 2.08 * Math.floor(days/365);
+                var threshold = 7.24 + 1.28 * (Math.floor(days/365)-15);
                 if(Math.random()*100<threshold) {
                     var change = (Math.random()*300-100)/100;
                     simulateHealth-=change;
                 }
             }
 
-            if(simulateHealth<3 && days%30==0 && days>365*15) {
-                var threshold = 25 - simulateHealth*3;
+            if(simulateHealth<2 && days%45==0 && days>365*15) {
+                var threshold = 25 + simulateHealth*20;
 
-                if(Math.random()*100<threshold) {
+                if(Math.random()*(2 + 1.5 * Math.floor(days/365*5))<threshold) {
                     alive = false;
+                    days += Math.floor(Math.random()*90);
                 }
             }
         }
 
         var years = Math.floor(days/365);
-        var months = Math.floor(((days/365)-years)*12);
-        var days = (Math.floor(((Math.floor(((days/365)-years)*12))-months)*30));
+        days -= years*365;
+        var months = Math.floor(days/30);
+        days -= months;
+        var nbdays = days;
 
 
-        return new Date(this.birth.getFullYear() + years, this.birth.getMonth() + months, this.birth.getDate() + days);
+        return new Date(this.birth.getFullYear() + years, this.birth.getMonth() + months, this.birth.getDate() + nbdays);
     }
 
     generateHealth() {
-        return Math.floor(Math.random()*1200)/100;
+        return Math.floor(Math.random()*800+400)/100;
     }
 
     generateMarriage() {
@@ -140,17 +145,21 @@ class Person {
     generateChildren() {
         var laid = 0;
         var children = 0;
+        var cooldown = this.birth;
         for(var i=maturity[0]; i< this.lifespan; i+=0.25) {
             var fertility = 120-Math.floor(i/10)*10;
             var controlDate = new Date(this.birth.getFullYear()+Math.floor(i), this.birth.getMonth()+i-Math.floor(i), this.birth.getDate());
+
             console.log(controlDate);
             if(Math.random()<0.33 && controlDate>=this.marriage && !isNaN(this.marriage)) {
-                console.log("They fucked");
                 laid++;
+                console.log("*moans*");
 
-                if(Math.random() * (120 + children * 10) < fertility) {
-                    console.log("CHILD");
+                if(Math.random() * (120 + children * 10) < fertility && controlDate>cooldown) {
+                    console.log("Child spawned");
                     children++;
+                    var birth = new Date(controlDate.getFullYear(), controlDate.getMonth(), controlDate.getDate()+270);
+                    cooldown = new Date(birth.getFullYear(), birth.getMonth(), birth.getDate() + Math.floor(Math.random()*1500));
                 }
             }
         }
@@ -158,7 +167,7 @@ class Person {
         console.log(laid);
         console.log(children);
 
-        function generateChild() {
+        function generateChild(birth) {
 
         }
     }
