@@ -73,8 +73,7 @@ class Person {
         this.monarch = [];
         this.abdication = false;
 
-
-        console.log(this.death);
+        num++;
     }
 
     generateName(sex) {
@@ -105,10 +104,10 @@ class Person {
                 }
             }
 
-            if(simulateHealth<2 && days%45==0 && days>365*15) {
-                var threshold = 25 + simulateHealth*20;
+            if(simulateHealth<2 && days%45==0 && days>365*25) {
+                var threshold = 25 + (3-simulateHealth)*20;
 
-                if(Math.random()*(2 + 1.5 * Math.floor(days/365*5))<threshold) {
+                if(Math.random()*(100 - 1.5 * Math.floor(days/365*5))<threshold) {
                     alive = false;
                     days += Math.floor(Math.random()*90);
                 }
@@ -147,29 +146,28 @@ class Person {
         var children = 0;
         var cooldown = this.birth;
         for(var i=maturity[0]; i< this.lifespan; i+=0.25) {
-            var fertility = 120-Math.floor(i/10)*10;
-            var controlDate = new Date(this.birth.getFullYear()+Math.floor(i), this.birth.getMonth()+i-Math.floor(i), this.birth.getDate());
+            var fertility = 120-Math.floor((i-maturity[0])/10)*10;
+            var controlDate = new Date(this.birth.getFullYear()+Math.floor(i), this.birth.getMonth()+(i-Math.floor(i))*12, this.birth.getDate());
 
-            console.log(controlDate);
             if(Math.random()<0.33 && controlDate>=this.marriage && !isNaN(this.marriage)) {
                 laid++;
-                console.log("*moans*");
 
-                if(Math.random() * (120 + children * 10) < fertility && controlDate>cooldown) {
-                    console.log("Child spawned");
+                if(Math.random() * (120 + children * 20) + Math.floor(children/5)*33 < fertility && controlDate>cooldown && controlDate<cutoff) {
                     children++;
-                    var birth = new Date(controlDate.getFullYear(), controlDate.getMonth(), controlDate.getDate()+270);
+                    var birth = new Date(controlDate.getFullYear(), controlDate.getMonth(), controlDate.getDate()+270+Math.floor(Math.random()*90-45));
                     cooldown = new Date(birth.getFullYear(), birth.getMonth(), birth.getDate() + Math.floor(Math.random()*1500));
+
+                    this.generateChild(birth);
                 }
             }
         }
+    }
 
-        console.log(laid);
-        console.log(children);
+    generateChild(birth) {
+        var sex = Math.random()>0.5 ? "M" : "F";
 
-        function generateChild(birth) {
-
-        }
+        this.children.push(new Person(birth, sex, this));
+        this.nbChild++;
     }
 
     computeLifespan() {
@@ -208,6 +206,11 @@ var maturity = [21, 0, 0];
 
 var minAge = 25;
 
-var founder = new Person(new Date(154, 04, 05), "M", undefined);
+var cutoff = new Date(2500, 0, 1);
+
+var num = 0;
+
+var founder = new Person(new Date(1540, 04, 05), "M", undefined);
 
 console.log(founder);
+console.log(num);
