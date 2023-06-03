@@ -48,6 +48,7 @@ class Monarch {
 
 class Person {
     constructor(birth, sex, father) {
+        console.log(num+" "+birth);
         this.name = this.generateName(sex);
         this.family = this.generateDynasty();
         this.sex = sex;
@@ -149,7 +150,7 @@ class Person {
             var fertility = 120-Math.floor((i-maturity[0])/10)*10;
             var controlDate = new Date(this.birth.getFullYear()+Math.floor(i), this.birth.getMonth()+(i-Math.floor(i))*12, this.birth.getDate());
 
-            if(Math.random()<0.33 && controlDate>=this.marriage && !isNaN(this.marriage)) {
+            if(Math.random()<0.10 && controlDate>=this.marriage && !isNaN(this.marriage)) {
                 laid++;
 
                 if(Math.random() * (120 + children * 20) + Math.floor(children/5)*33 < fertility && controlDate>cooldown && controlDate<cutoff) {
