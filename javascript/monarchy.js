@@ -3,7 +3,7 @@ class Monarch {
         this.ID = 1;
         this.identity = identity;
         this.predecessor = predecessor;
-        if(this.predecessor != undefined) {
+        if(this.predecessor !== undefined) {
             this.ID = this.predecessor.ID + 1;
         }
 
@@ -18,13 +18,30 @@ class Monarch {
         reign += this.reignDuration;
         console.log(reign/this.ID);
 
-        this.successor = this.nextMonarch();
+        if(this.reignEnd<cutoff) {
+            this.successor = this.nextMonarch();
+        } else {
+            this.successor = null;
+        }
 
-        if(guaranteedChildren == true || this.identity.fertilityStart < this.identity.death) {
+
+        if(guaranteedChildren === true || this.identity.fertilityStart < this.identity.death) {
             this.identity.married = True;
-            while(this.identity.children == []) {
+            while(this.identity.children === []) {
                 this.identity.generateChildren();
             }
+        }
+
+        this.populateMonarch(founder);
+    }
+
+    populateMonarch(person) {
+        if(this.reignEnd>=person.birth && this.reignStart<person.death && this.identity !== person) {
+            person.monarch.push(this);
+        } if(person.children !== []) {
+            person.children.forEach(child => {
+                 this.populateMonarch(child);
+            });
         }
     }
 
@@ -33,12 +50,12 @@ class Monarch {
     }
 
     generateRegnalName() {
-        var name = "";
+        let name = "";
 
 
-        if(Math.random()>(1/this.ID+0.33) && this.ID != 1 && Object.keys(regnal[this.identity.sex]).length>0) {
-            var names = Object.keys(regnal[this.identity.sex]);
-            var index = Math.floor(Math.random()*names.length);
+        if(Math.random()>(1/this.ID+0.33) && this.ID !== 1 && Object.keys(regnal[this.identity.sex]).length>0) {
+            let names = Object.keys(regnal[this.identity.sex]);
+            let index = Math.floor(Math.random()*names.length);
             console.log(regnal[this.identity.sex]);
             name = names[index];
             regnal[this.identity.sex][name]++;
@@ -59,47 +76,38 @@ class Monarch {
     }
 
     generateReignStart() {
-        if(this.predecessor == undefined) {
-            var start = this.identity.maturity;
-            var end = this.identity.death;
-
-            var year = Math.floor(Math.random()* (end.getFullYear()-start.getFullYear()))+start.getFullYear();
-            var month = Math.floor(Math.random()*12);
-            var day = Math.floor(Math.random()*30);
+        let start = this.identity.maturity;
+        if(this.predecessor === undefined) {
+            let end = this.identity.death,
+                year = Math.floor(Math.random() * (end.getFullYear() - start.getFullYear())) + start.getFullYear(),
+                month = Math.floor(Math.random() * 12), day = Math.floor(Math.random() * 30);
 
             start = new Date(year, month, day);
-
-            var age = start.getFullYear() - this.identity.birth.getFullYear();
-            if(start.getMonth()<this.identity.birth.getMonth()) {
-                age--;
-            } else {
-                if(start.getMonth()==this.identity.birth.getMonth() && start.getDate()<this.identity.birth.getDate()) {
-                    age--;
-                }
-            }
         } else {
-            var start = this.predecessor.reignEnd;
+            start = this.predecessor.reignEnd;
+        }
 
-            var age = start.getFullYear() - this.identity.birth.getFullYear();
-            if(start.getMonth()<this.identity.birth.getMonth()) {
+        let age = start.getFullYear() - this.identity.birth.getFullYear();
+
+        if(start.getMonth()<this.identity.birth.getMonth()) {
+            age--;
+        } else {
+            if(start.getMonth()===this.identity.birth.getMonth() && start.getDate()<this.identity.birth.getDate()) {
                 age--;
-            } else {
-                if(start.getMonth()==this.identity.birth.getMonth() && start.getDate()<this.identity.birth.getDate()) {
-                    age--;
-                }
             }
         }
+        console.log(age);
         return [start,age];
     }
 
     generateReignEnd() {
-        var end = this.identity.death;
+        let end = this.identity.death;
 
-        var age = end.getFullYear() - this.identity.birth.getFullYear();
+        let age = end.getFullYear() - this.identity.birth.getFullYear();
             if(end.getMonth()<this.identity.birth.getMonth()) {
                 age--;
             } else {
-                if(end.getMonth()==this.identity.birth.getMonth() && end.getDate()<this.identity.birth.getDate()) {
+                if(end.getMonth()===this.identity.birth.getMonth() && end.getDate()<this.identity.birth.getDate()) {
                     age--;
                 }
             }
@@ -107,12 +115,12 @@ class Monarch {
     }
 
     computeReign() {
-        var duration = this.reignEnd.getFullYear() - this.reignStart.getFullYear();
+        let duration = this.reignEnd.getFullYear() - this.reignStart.getFullYear();
 
         if(this.reignEnd.getMonth()<this.reignStart.getMonth()) {
             duration--;
         } else {
-            if(this.reignEnd.getMonth()==this.reignStart.getMonth() && this.reignEnd.getDate()<this.reignStart.getDate()) {
+            if(this.reignEnd.getMonth()===this.reignStart.getMonth() && this.reignEnd.getDate()<this.reignStart.getDate()) {
                 duration--;
             }
         }
@@ -120,7 +128,7 @@ class Monarch {
     }
 
     nextMonarch() {
-        var identity = founder.computeSuccessor(this.reignEnd, this);
+        let identity = founder.computeSuccessor(this.reignEnd, this);
 
         if(identity == null) {
             return null;
@@ -129,7 +137,7 @@ class Monarch {
     }
 
     toString() {
-        var string = "name: "+ this.regnalName + " " +
+        let string = "name: "+ this.regnalName + " " +
          arabicToRoman(this.regnalNumber) + "<br>";
         
         string += "identity: "+ this.identity.toString() + "<br>";
@@ -219,23 +227,23 @@ class Person {
     }
 
     generateDeath() {
-        var days = 0;
-        var simulateHealth = this.health;
+        let days = 0;
+        let simulateHealth = this.health;
 
-        var alive = true;
+        let alive = true;
         while(alive) {
             days++;
-
-            if(days%365==0 && days>365*25) {
-                var threshold = 7.06 + 0.86 * (Math.floor(days/365)-15);
+            let threshold;
+            if(days%365===0 && days>365*25) {
+                threshold = 6.88 + 0.82 * (Math.floor(days/365)-15);
                 if(Math.random()*100<threshold) {
-                    var change = (Math.random()*300-100)/100;
+                    let change = (Math.random()*300-100)/100;
                     simulateHealth-=change;
                 }
             }
 
-            if(simulateHealth<2 && days%45==0 && days>365*25) {
-                var threshold = 25 + (3-simulateHealth)*20;
+            if(simulateHealth<2 && days%45===0 && days>365*25) {
+                threshold = 25 + (3-simulateHealth)*20;
 
                 if(Math.random()*(100 - 1.33 * Math.floor(days/365*5))<threshold) {
                     alive = false;
@@ -244,29 +252,29 @@ class Person {
             }
         }
 
-        var years = Math.floor(days/365);
+        let years = Math.floor(days/365);
         days -= years*365;
-        var months = Math.floor(days/30);
+        let months = Math.floor(days/30);
         days -= months;
-        var nbdays = days;
+        let nbdays = days;
 
 
         return new Date(this.birth.getFullYear() + years, this.birth.getMonth() + months, this.birth.getDate() + nbdays);
     }
 
     generateHealth() {
-        var parentBonus;
-        if(this.parent == undefined) {
+        let parentBonus;
+        if(this.parent === undefined) {
             parentBonus = 5;
         } else {
             parentBonus = this.parent.health;
             this.longevity = this.parent.longevity;
         }
-        var min = 400*this.longevity + parentBonus*10;
+        const min = 400*this.longevity + parentBonus*10;
 
-        var max = 1500*(this.longevity*(0.8-this.longevity/10));
+        const max = 1500*(this.longevity*(0.8-this.longevity/10));
 
-        var health = Math.floor(Math.random()*(max-min)+min)/100
+        let health = Math.floor(Math.random()*(max-min)+min)/100
 
         if(health>7) {
             this.longevity *= 1.04;
@@ -282,11 +290,11 @@ class Person {
     }
 
     generateMarriage() {
-        var minYear = this.maturity.getFullYear();
-        var maxYear = this.death.getFullYear()-1;
+        const minYear = this.maturity.getFullYear();
+        const maxYear = this.death.getFullYear()-1;
 
         if(Math.random()<0.33+1/this.generation) {
-            var year = Math.floor(Math.random()*(maxYear-minYear))+minYear;
+            let year = Math.floor(Math.random()*(maxYear-minYear))+minYear;
             return new Date(year, Math.floor(Math.random()*12), Math.floor(Math.random()*31));
         } else {
             return NaN;
@@ -295,19 +303,19 @@ class Person {
     }
 
     generateChildren() {
-        var laid = 0;
-        var children = 0;
-        var cooldown = this.birth;
-        for(var i=maturity[0]; i< this.lifespan; i+=0.25) {
-            var fertility = 120-Math.floor((i-maturity[0])/10)*10;
-            var controlDate = new Date(this.birth.getFullYear()+Math.floor(i), this.birth.getMonth()+(i-Math.floor(i))*12, this.birth.getDate());
+        let laid = 0;
+        let children = 0;
+        let cooldown = this.birth;
+        for(let i=maturity[0]; i< this.lifespan; i+=0.25) {
+            let fertility = 120-Math.floor((i-maturity[0])/10)*10;
+            let controlDate = new Date(this.birth.getFullYear()+Math.floor(i), this.birth.getMonth()+(i-Math.floor(i))*12, this.birth.getDate());
 
             if(Math.random()<0.125 && controlDate>=this.marriage && !isNaN(this.marriage)) {
                 laid++;
 
                 if(Math.random() * (120 + children * 20) + Math.floor(children/5)*33 < fertility && controlDate>cooldown && controlDate<cutoff) {
                     children++;
-                    var birth = new Date(controlDate.getFullYear(), controlDate.getMonth(), controlDate.getDate()+270+Math.floor(Math.random()*90-45));
+                    let birth = new Date(controlDate.getFullYear(), controlDate.getMonth(), controlDate.getDate()+270+Math.floor(Math.random()*90-45));
                     cooldown = new Date(birth.getFullYear(), birth.getMonth(), birth.getDate() + Math.floor(Math.random()*1500));
 
                     this.generateChild(birth);
@@ -317,14 +325,14 @@ class Person {
     }
 
     generateChild(birth) {
-        var sex = Math.random()>0.5 ? "M" : "F";
+        let sex = Math.random()>0.5 ? "M" : "F";
 
         this.children.push(new Person(birth, sex, this));
         this.nbChild++;
     }
 
     generateID(parent) {
-        if(parent != undefined) {
+        if(parent !== undefined) {
             return parent.ID+"/"+(parent.nbChild+1).toString();
         } else {
             return "1";
@@ -332,11 +340,11 @@ class Person {
     }
 
     computeLifespan() {
-        var age = this.death.getFullYear() - this.birth.getFullYear();
+        let age = this.death.getFullYear() - this.birth.getFullYear();
         if(this.death.getMonth() < this.birth.getMonth()) {
             age--;
         } else {
-            if(this.death.getMonth() == this.birth.getMonth()) {
+            if(this.death.getMonth() === this.birth.getMonth()) {
                 if(this.death.getDate()<this.birth.getDate()) {
                     age--;
                 }
@@ -348,10 +356,10 @@ class Person {
 
     computeSuccessor(reignEnd, monarch) {
         if(this.birth < reignEnd) {
-            var successor = null;
-            for(var id in this.children) {
-                var child = this.children[id];
-                if(child.death > reignEnd && reignEnd > child.birth && child != monarch) {
+            let successor = null;
+            for(let id in this.children) {
+                let child = this.children[id];
+                if(child.death > reignEnd && reignEnd > child.birth && child !== monarch.identity) {
                     return child;
                 } else {
                     if(reignEnd > child.death) {
@@ -372,7 +380,7 @@ class Person {
     }
 
     computeGeneration() {
-        if(this.parent == undefined) {
+        if(this.parent === undefined) {
             return 1;
         } else {
             return this.parent.generation + 1;
@@ -380,8 +388,8 @@ class Person {
     }
 
     toString() {
-        var string = this.name + " (" + this.sex + ")<br>";
-        string +=
+        let string = "Name: " + this.name + " (" + this.sex + ")<br>";
+        string += "Life: " +
         this.birth.getDay() + "." +
         this.birth.getMonth() + "." +
         this.birth.getFullYear() + " " +
@@ -389,7 +397,30 @@ class Person {
         this.death.getDay() + "." +
         this.death.getMonth() + "." +
         this.death.getFullYear() + " " +
-        "(" + this.lifespan + ")";
+        "(" + this.lifespan + ")<br>";
+
+        string += "Monarch(s): <br>"
+        this.monarch.forEach(regent => {
+            let name = regent.regnalName + " " + arabicToRoman(regent.regnalNumber);
+            name += " {" +
+            regent.reignStart.getDay() + "." +
+            regent.reignStart.getMonth() + "." +
+            regent.reignStart.getFullYear() + " " +
+            "(" +
+            regent.reignStartAge +
+            ")" +
+            "-" +
+            regent.reignEnd.getDay() + "." +
+            regent.reignEnd.getMonth() + "." +
+            regent.reignEnd.getFullYear() + " " +
+            "(" +
+            regent.reignEndAge +
+            ")" +
+            "[" +
+            regent.reignDuration +
+            "]}<br>";
+            string += name;
+        });
         
         return string;
     }
@@ -399,25 +430,25 @@ class Person {
     }
 }
 
-var maturity = [21, 0, 0];
+let maturity = [21, 0, 0];
 
-var guaranteedChildren = false;
+let guaranteedChildren = false;
 
-var minAge = 25;
+let minAge = 25;
 
-var cutoff = new Date(2500, 0, 1);
+let cutoff = new Date(2500, 0, 1);
 
-var num = 0;
+let num = 0;
 
-var regnal = {"M": {}, "F": {}};
+let regnal = {"M": {}, "F": {}};
 
-var age = 0;
+let age = 0;
 
-var reign = 0;
+let reign = 0;
 
-var founder;
+let founder;
 
-var king;
+let king;
 
 function generation() {
     regnal = {"M": {}, "F": {}};
@@ -429,7 +460,7 @@ function generation() {
     num = 0;
 
 
-    founder = new Person(new Date(1540, 04, 05), "M", undefined);
+    founder = new Person(new Date(1540, 4, 5), "M", undefined);
 
     king = new Monarch(founder, undefined);
 
@@ -441,10 +472,10 @@ generation();
 
 console.log(age/num);
 
-var focus = king;
+let focus = king;
 
-var text = document.getElementById("regents");
-var string = "";
+let text = document.getElementById("regents");
+let string = "";
 
 while(focus != null) {
     string += "<p>";
