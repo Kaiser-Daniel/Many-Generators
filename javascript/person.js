@@ -29,27 +29,39 @@ export default class Person {
     }
 
     generateLongevity() {
+        let parentBonus;
+        if(this.parent == undefined) {
+            parentBonus = 100;
+        } else {
+            parentBonus = this.parent.longevity;
+        }
+        let min = 0.95*(parentBonus-20);
+        let max = 1.05*(parentBonus+20);
+        let longevity = Math.floor(Math.random()*(max-min)+min);
+        return longevity;
     }
 
     generateHealth() {
-        var parentBonus;
+        let parentBonus;
+        let parentLongevity;
         if(this.parent == undefined) {
             parentBonus = 5;
+            parentLongevity = 1;
         } else {
             parentBonus = this.parent.health;
             parentLongevity = this.parent.longevity;
         }
-        var min = 400*this.longevity + parentBonus*10;
+        let min = 400*(parentLongevity + 5*this.longevity)/10 + parentBonus;
 
-        var max = 1500*(this.longevity*(0.8-this.longevity/10));
+        let max = 1500*(parentLongevity*1.2 + 3*this.longevity)/10 + parentBonus;
 
-        var health = Math.floor(Math.random()*(max-min)+min)/100
+        let health = Math.floor(Math.random()*(max-min)+min)
 
-        if(health>7) {
+        if(health>9000) {
             this.longevity *= 1.04;
         } else {
-            if(health<5) {
-                this.longevity *= 0.098;
+            if(health<6000) {
+                this.longevity *= 0.97;
             }
         }
 
@@ -71,9 +83,9 @@ export default class Person {
     }
 
     computeDeath() {
-        const averageLifespan = (80 + (this.health -400)/10)*this.longevity;
+        const averageLifespan = (80 + (this.health-9000)/25)*this.longevity/1000;
 
-        const standardDeviation = 5/this.longevity;
+        const standardDeviation = 500/this.longevity;
 
         const lifespan = generateLifespan(averageLifespan, standardDeviation);
         
@@ -85,23 +97,36 @@ export default class Person {
 
             const randomValue = sum/6;
 
-            const lifespan = average + randomValue*standardDeviation;
+            const lifespan = averageLifespan + randomValue*standardDeviation;
 
             return lifespan;
         }
 
-        const deathYear = this.birth + Math.floor(lifespan);
+        console.log(lifespan);
+
+        const deathYear = this.birth.getFullYear() + Math.floor(lifespan);
         const deathMonth = Math.floor((lifespan - Math.floor(lifespan))*12);
         const deathDay = Math.floor(((lifespan - Math.floor(lifespan))*12 - Math.floor((lifespan - Math.floor(lifespan))*12))*30);
+
+        console.log(deathYear + " " + deathMonth + " " + deathDay)
 
         return new Date(deathYear, deathMonth, deathDay);
     }
 
     computeLife() {
-        return this.death - this.birth;
+        return Math.floor((this.death - this.birth)/3.1536e10);
     }
 
     computeMaturity() {
         return this.birth + this.life/2;
     }
+
+    computeGeneration() {
+        if(this.parent == undefined) {
+            return 0;
+        } else {
+            return this.parent.generation + 1;
+        }
+    }
+
 }
